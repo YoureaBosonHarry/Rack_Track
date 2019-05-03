@@ -28,14 +28,15 @@ for i in filled_shelves:
     if i[0][0] in data:
         key = " ".join(i[0])
         print(key, current_count[key])
-        for j in range(2, cols):
-            try:
+        try:
+            for j in range(2, cols):
                 try:
                     data[i[0][0]][f"box_{i[0][1]}"][f"Item_Group_{current_count[key]}"].append(ws.cell(i[1], j).value)
                 except KeyError:
                     data[i[0][0]][f"box_{i[0][1]}"][f"Item_Group_{current_count[key]}"] = [ws.cell(i[1], j).value]
-            except KeyError:
-                data[i[0][0]][f"box_{i[0][1]}"] = {}
+        except KeyError:
+            data[i[0][0]][f"box_{i[0][1]}"] = {}
+            current_count[key] -= 1
         current_count[key] += 1
 with open(os.path.join(os.getcwd(), "racks.json"), 'w+') as f:
     json.dump(data, f, indent=4)
