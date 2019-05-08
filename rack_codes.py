@@ -43,16 +43,16 @@ def print_codes():
             n = 0
             i = 0
         if i%2 == 0:
-            pdf.image(image, 25, 10 + 27.5*i, 55, 55)
+            pdf.image(image, 25, 16 + 26.5*i, 55, 50)
             n += 1
             i += 1
         elif i%2 == 1:
             if i == 1:
-                pdf.image(image, 135,  10 + 27.5*(i-1), 55, 55)
+                pdf.image(image, 135,  16 + 26.5*(i-1), 55, 50)
                 n += 1
                 i += 1
             else:
-                pdf.image(image, 135,  10 + 27.5*(i-1), 55, 55)
+                pdf.image(image, 135,  16 + 26.5*(i-1), 55, 50)
                 n += 1
                 i += 1
     p_p = os.path.join(os.getcwd(), f"rack_qr_codes.pdf")

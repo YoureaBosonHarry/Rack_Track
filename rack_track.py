@@ -53,14 +53,11 @@ class App(QWidget):
         self.layout = QHBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
         self.setLayout(self.layout)
-        self.showFullScreen()
+        #self.showFullScreen()
         self.fps = 24
         self.font = self.font()
         self.font.setPointSize(14)
         self.main_ui()
-        self.tree_ui()
-        self.form_ui()
-        self.stack.hide()
         for c1 in self.findChildren(QWidget):
             c1.setFont(self.font)
 
@@ -77,77 +74,8 @@ class App(QWidget):
         self.main_layout.addWidget(self.video_frame)
         self.main_layout.addWidget(self.capture_button)
 
-    def form_ui(self):
-        self.stack = QStackedWidget(self)
-        self.layout.addWidget(self.stack)
-        self.form_gb = QGroupBox(self)
-        self.form_layout = QFormLayout()
-        self.form_layout.setAlignment(Qt.AlignCenter)
-        self.form_layout.setSpacing(12)
-        self.form_gb.setLayout(self.form_layout)
-        self.stack.addWidget(self.form_gb)
-        self.location = QLabel(self)
-        self.product = QLabel(self)
-        self.size = QLabel(self)
-        self.quantity = QLabel(self)
-        self.item_no = QLabel(self)
-        self.lot_no = QLabel(self)
-        self.proto_no = QLabel(self)
-        self.date_stored = QLabel(self)
-        self.sent_to_storage = QLabel(self)
-        self.proj_num = QLabel(self)
-        self.q_spec = QLabel(self)
-        self.contact = QLabel(self)
-        self.form_layout.addRow(QLabel("Location:"), self.location)
-        self.form_layout.addRow(QLabel("Product:"), self.product)
-        self.form_layout.addRow(QLabel("Size:"), self.size)
-        self.form_layout.addRow(QLabel("Quantity:"), self.quantity)
-        self.form_layout.addRow(QLabel("Item Number:"), self.item_no)
-        self.form_layout.addRow(QLabel("Lot Number:"), self.lot_no)
-        self.form_layout.addRow(QLabel("Prototype Number:"), self.proto_no)
-        self.form_layout.addRow(QLabel("Date Stored:"), self.date_stored)
-        self.form_layout.addRow(QLabel("Sent to LT Storage:"), self.sent_to_storage)
-        self.form_layout.addRow(QLabel("Project Number:"), self.proj_num)
-        self.form_layout.addRow(QLabel("QE/QA/QN:"), self.q_spec)
-        self.form_layout.addRow(QLabel("Contact:"), self.contact)
-
-    def tree_ui(self):
-        self.tree = QTreeWidget(self)
-        self.tree.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
-        self.layout.addWidget(self.tree)
-        self.tree.hide()
-        self.branch_dict = {}
-        self.tree_branches("A")
-        self.tree_branches("B")
-        self.tree_branches("C")
-        self.tree_branches("D")
-        self.tree_branches("E")
-
-    def tree_branches(self, start):
-        self.branch_dict[start] = QTreeWidgetItem(self.tree, [start])
-        for i in range(1, 8):
-            QTreeWidgetItem(self.branch_dict[start], [f"{start}{i}"])
-
-    def fill_form(self, data):
-        box = data[1].replace("_", " ").capitalize()
-        keys = data[2].keys()
-        self.tree.show()
-        self.stack.show()
-        self.main_gb.hide()
-        self.location.setText(f"{data[0]} {box}")
-        self.product.setText(str(data[2]["Item_Group_1"][0]))
-        self.size.setText(str(data[2]["Item_Group_1"][1]))
-        self.quantity.setText(str(data[2]["Item_Group_1"][2]))
-        self.item_no.setText(str(data[2]["Item_Group_1"][3]))
-        self.lot_no.setText(str(data[2]["Item_Group_1"][4]))
-        self.proto_no.setText(str(data[2]["Item_Group_1"][5]))
-        self.date_stored.setText(str(data[2]["Item_Group_1"][6]))
-        self.sent_to_storage.setText(str(data[2]["Item_Group_1"][7]))
-        self.proj_num.setText(str(data[2]["Item_Group_1"][8]))
-        self.q_spec.setText(str(data[2]["Item_Group_1"][11]))
-        self.contact.setText(str(data[2]["Item_Group_1"][12]))
-
     def cap(self):
+        self.video_frame.show()
         self.cap = cv2.VideoCapture(0)
         self.timer = QTimer()
         self.timer.timeout.connect(self.next_frame)
@@ -171,9 +99,15 @@ class App(QWidget):
         self.timer.stop()
         self.cap.release()
         cv2.destroyAllWindows()
-        self.video_frame.hide()
-        self.fill_form(data)
+        self.video_frame.clear()
+        self.display_capture(data)
 
+    def display_capture(self, data):
+        import rack_table
+        self.dialog = rack_table.Dialog_Form()
+        self.dialog.form_data(data)
+        self.dialog.form_ui()
+        self.dialog.show()
 
 def main():
     import sys
