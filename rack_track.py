@@ -104,9 +104,9 @@ class App(QWidget):
 
     def display_capture(self, data):
         import rack_table
-        self.dialog = rack_table.Dialog_Form()
-        self.dialog.form_data(data)
-        self.dialog.form_ui()
+        self.dialog = rack_table.Dialog_Form(data)
+        self.dialog.create_stack(len(data[2]))
+        #self.dialog.form_ui(len(data[2]))
         self.dialog.show()
 
 def main():
