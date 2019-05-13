@@ -18,8 +18,8 @@ row6 = {f"{i}6{j}": {} for i in list(["A", "B", "C", "D", "E", "F"]) for j in ra
 row7 = {f"{i}7{j}": {} for i in list(["A", "B", "C", "D", "E", "F"]) for j in range(1,9)}
 data = dict(row1, **row2, **row3, **row4, **row5, **row6, **row7)
 
-filled_shelves = [[ws.cell(i, 1).value.split(" "), i] for i in range(2, rows) if ws.cell(i, 2).value != ""]
-no_row = [ws.cell(i, 1).value.split(" ") for i in range(2, rows) if ws.cell(i, 2).value != ""]
+filled_shelves = [[ws.cell(i, 0).value.split(" "), i] for i in range(2, rows) if ws.cell(i, 0).value != ""]
+no_row = [ws.cell(i, 0).value.split(" ") for i in range(2, rows) if ws.cell(i, 0).value != ""]
 strings = sorted(set([" ". join(i) for i in no_row]))
 sorted_str = [i.split(" ") for i in strings]
 current_count = {i: 1 for i in strings}
@@ -31,7 +31,7 @@ for i in filled_shelves:
 for i in filled_shelves:
     if i[0][0] in data:
         key = " ".join(i[0])
-        for j in range(2, cols):
+        for j in range(1, cols):
             try:
                 data[i[0][0]][f"box_{i[0][1]}"][f"Item_Group_{current_count[key]}"].append(ws.cell(i[1], j).value)
             except KeyError:

@@ -1,4 +1,4 @@
-
+import json
 import os
 import re
 from PyQt5.QtCore import Qt
@@ -8,6 +8,8 @@ from PyQt5.QtWidgets import QFormLayout
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtWidgets import QLabel
+from PyQt5.QtWidgets import QLineEdit
+from PyQt5.QtWidgets import QMessageBox
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QStackedWidget
@@ -29,12 +31,13 @@ class Dialog_Form(QWidget):
         self.combobox.currentTextChanged.connect(self.switch_page)
         self.data = data
         self.current_item = 1
+        self.new_form = False
 
     def set_font(self, size=14):
-        self.font = self.font()
-        self.font.setPointSize(size)
+        self.tab_font = self.font()
+        self.tab_font.setPointSize(size)
         for c1 in self.findChildren(QWidget):
-            c1.setFont(self.font)
+            c1.setFont(self.tab_font)
 
     def add_pages(self, num):
         for i in range(num):
@@ -71,6 +74,7 @@ class Dialog_Form(QWidget):
         self.location = QLabel(f"{array}, {box}", self)
         add_button = QToolButton(self)
         add_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "add.png")))
+        add_button.clicked.connect(self.is_form_open)
         edit_button = QToolButton(self)
         edit_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "edit.png")))
         trash_button = QToolButton(self)
@@ -80,8 +84,8 @@ class Dialog_Form(QWidget):
         container_layout.addWidget(edit_button)
         container_layout.addWidget(trash_button)
         self.product = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][0], self)
-        self.size = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][1], self)
-        self.quantity = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][2], self)
+        self.size = QLabel(str(self.data[2][f"Item_Group_{stack_num + 1}"][1]), self)
+        self.quantity = QLabel(str(self.data[2][f"Item_Group_{stack_num + 1}"][2]), self)
         self.item_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][3], self)
         self.lot_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][4], self)
         self.proto_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][5], self)
@@ -102,5 +106,91 @@ class Dialog_Form(QWidget):
         self.form_dict[stack_num].addRow(QLabel("Project Number:"), self.proj_num)
         self.form_dict[stack_num].addRow(QLabel("QE/QA/QN:"), self.q_spec)
         self.form_dict[stack_num].addRow(QLabel("Contact:"), self.contact)
-        #self.set_font()
+        self.set_font()
 
+    def is_form_open(self):
+        if self.new_form:
+            pass
+        else:
+            self.new_form = True
+            self.add_item()
+
+    def new_item(self, stack_num):
+        self.form_dict[stack_num].setAlignment(Qt.AlignCenter)
+        self.form_dict[stack_num].setSpacing(12)
+        self.stack_dict[stack_num].setLayout(self.form_dict[stack_num])
+        array, box = self.data[0], self.data[1].replace("_", " ").capitalize()
+        container = QWidget(self)
+        container_layout = QHBoxLayout()
+        container_layout.setAlignment(Qt.AlignLeft)
+        container.setLayout(container_layout)
+        container.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.location = QLabel(f"{array}, {box}", self)
+        add_button = QToolButton(self)
+        add_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
+        add_button.clicked.connect(self.write_item)
+        container_layout.addWidget(self.location)
+        container_layout.addWidget(add_button)
+        product = QLineEdit(self)
+        product.setPlaceholderText("Product")
+        size = QLineEdit(self)
+        size.setPlaceholderText("Size")
+        quantity = QLineEdit(self)
+        quantity.setPlaceholderText("Quantity")
+        item_no = QLineEdit(self)
+        item_no.setPlaceholderText("Item Number")
+        lot_no = QLineEdit(self)
+        lot_no.setPlaceholderText("Lot Number")
+        proto_no = QLineEdit(self)
+        proto_no.setPlaceholderText("Prototype Number")
+        date_stored = QLineEdit(self)
+        date_stored.setPlaceholderText("Date Stored")
+        sent_to_storage = QLineEdit(self)
+        sent_to_storage.setPlaceholderText("Date Sent to Storage")
+        proj_num = QLineEdit(self)
+        proj_num.setPlaceholderText("Project Number")
+        q_spec = QLineEdit(self)
+        q_spec.setPlaceholderText("QE/QN/QA")
+        contact = QLineEdit(self)
+        contact.setPlaceholderText("Contact")
+        for i in self.findChildren(QLineEdit):
+            i.setClearButtonEnabled(True)
+            i.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        self.form_dict[stack_num].addRow(QLabel("Location:"), container)
+        self.form_dict[stack_num].addRow(QLabel("Product:"), product)
+        self.form_dict[stack_num].addRow(QLabel("Size:"), size)
+        self.form_dict[stack_num].addRow(QLabel("Quantity:"), quantity)
+        self.form_dict[stack_num].addRow(QLabel("Item Number:"), item_no)
+        self.form_dict[stack_num].addRow(QLabel("Lot Number:"), lot_no)
+        self.form_dict[stack_num].addRow(QLabel("Prototype Number:"), proto_no)
+        self.form_dict[stack_num].addRow(QLabel("Date Stored:"), date_stored)
+        self.form_dict[stack_num].addRow(QLabel("Sent to LT Storage:"), sent_to_storage)
+        self.form_dict[stack_num].addRow(QLabel("Project Number:"), proj_num)
+        self.form_dict[stack_num].addRow(QLabel("QE/QA/QN:"), q_spec)
+        self.form_dict[stack_num].addRow(QLabel("Contact:"), contact)
+        self.set_font()
+
+    def add_item(self):
+        count = self.stack.count()
+        self.combobox.addItem(f"Item Group {count+1}")
+        self.stack_dict[count] = QWidget(self)
+        self.form_dict[count] = QFormLayout()
+        self.stack.addWidget(self.stack_dict[count])
+        self.new_item(count)
+        self.combobox.setCurrentIndex(count)
+
+    def write_item(self):
+        with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
+            items = json.load(f)
+        items[self.data[0]][self.data[1]][f"Item_Group_{self.stack.count()}"] = [i.text().upper() for i in self.findChildren(QLineEdit)]
+        with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
+            json.dump(items, fw, indent=4)
+        self.new_form = False
+        self.info_message("Success", "Item Group Added")
+
+    def info_message(self, t, m):
+        qb = QMessageBox(self)
+        qb.setWindowTitle(t)
+        qb.setText(m)
+        qb.setFont(self.tab_font)
+        ret = qb.exec_()
