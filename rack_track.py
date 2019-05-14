@@ -106,7 +106,6 @@ class App(QWidget):
         import rack_table
         self.dialog = rack_table.Dialog_Form(data)
         self.dialog.create_stack(len(data[2]))
-        #self.dialog.form_ui(len(data[2]))
         self.dialog.show()
 
 def main():

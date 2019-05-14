@@ -62,6 +62,7 @@ class Dialog_Form(QWidget):
             self.form_ui(i)
 
     def form_ui(self, stack_num):
+        print(self.data)
         self.form_dict[stack_num].setAlignment(Qt.AlignCenter)
         self.form_dict[stack_num].setSpacing(12)
         self.stack_dict[stack_num].setLayout(self.form_dict[stack_num])
@@ -77,6 +78,7 @@ class Dialog_Form(QWidget):
         add_button.clicked.connect(self.is_form_open)
         edit_button = QToolButton(self)
         edit_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "edit.png")))
+        edit_button.clicked.connect(self.edit_item)
         trash_button = QToolButton(self)
         trash_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "remove.png")))
         container_layout.addWidget(self.location)
@@ -128,7 +130,7 @@ class Dialog_Form(QWidget):
         self.location = QLabel(f"{array}, {box}", self)
         add_button = QToolButton(self)
         add_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
-        add_button.clicked.connect(self.write_item)
+        add_button.clicked.connect(lambda: self.write_item(self.stack.count(), "Item Group Added"))
         container_layout.addWidget(self.location)
         container_layout.addWidget(add_button)
         product = QLineEdit(self)
@@ -179,14 +181,47 @@ class Dialog_Form(QWidget):
         self.new_item(count)
         self.combobox.setCurrentIndex(count)
 
-    def write_item(self):
+    def edit_item(self):
+        for i in range(self.form_dict[self.stack.currentIndex()].rowCount()):
+            self.form_dict[self.stack.currentIndex()].removeRow(0)
+        array, box = self.data[0], self.data[1].replace("_", " ").capitalize()
+        new_container = QWidget(self)
+        new_container_layout = QHBoxLayout()
+        location = QLabel(f"{array}, {box}")
+        new_container_layout.setAlignment(Qt.AlignLeft)
+        new_container.setLayout(new_container_layout)
+        new_container.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
+        add_button = QToolButton(self)
+        add_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
+        add_button.clicked.connect(lambda: self.write_item())
+        new_container_layout.addWidget(location)
+        new_container_layout.addWidget(add_button)
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Location:"), new_container)
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Product:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Size:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Quantity:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Item Number:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Lot Number:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Prototype Number:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Date Stored:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Sent to LT Storage:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Project Number:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("QE/QA/QN:"), QLineEdit(self))
+        self.form_dict[self.stack.currentIndex()].addRow(QLabel("Contact:"), QLineEdit(self))
+
+    def write_item(self, write_stack, msg_str):
         with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
             items = json.load(f)
-        items[self.data[0]][self.data[1]][f"Item_Group_{self.stack.count()}"] = [i.text().upper() for i in self.findChildren(QLineEdit)]
-        with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
-            json.dump(items, fw, indent=4)
+        ss = self.stack_dict[self.stack.currentIndex()]
+        items[self.data[0]][self.data[1]][f"Item_Group_{write_stack}"] = [i.text().upper() for i in ss.findChildren(QLineEdit)]
+        #with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
+            #json.dump(items, fw, indent=4)
         self.new_form = False
-        self.info_message("Success", "Item Group Added")
+        self.info_message("Success", f"{msg_str}")
+        self.data[2][f"Item_Group_{write_stack}"] = items[self.data[0]][self.data[1]][f"Item_Group_{write_stack}"]
+        for i in reversed(range(self.form_dict[self.stack.count()-1].count())):
+            self.form_dict[self.stack.count()-1].itemAt(i).widget().deleteLater()
+        self.form_ui(self.stack.count()-1)
 
     def info_message(self, t, m):
         qb = QMessageBox(self)
