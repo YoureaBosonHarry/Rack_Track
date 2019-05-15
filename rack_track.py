@@ -11,6 +11,7 @@ from PIL import ImageFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QTimer
 from PyQt5.QtGui import QImage
+from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QPixmap
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QFormLayout
@@ -21,6 +22,7 @@ from PyQt5.QtWidgets import QMainWindow
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QStackedWidget
+from PyQt5.QtWidgets import QToolBar
 from PyQt5.QtWidgets import QTreeWidget
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtWidgets import QVBoxLayout
@@ -45,7 +47,8 @@ def validate_code(barcode_data):
     with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
         data = json.load(f)
     if matrix in data:
-        return True, [matrix, box, data[matrix][box]]
+        return True, [matrix, box, len(data[matrix][box])]
+        #return True, [matrix, box]
 
 class App(QWidget):
     def __init__(self):
@@ -67,6 +70,12 @@ class App(QWidget):
         self.main_layout.setAlignment(Qt.AlignCenter)
         self.main_gb.setLayout(self.main_layout)
         self.layout.addWidget(self.main_gb)
+        self.toolbar = QToolBar(self)
+        pal = QPalette()
+        pal.setColor(QPalette.Background, Qt.transparent)
+        self.toolbar.setPalette(pal)
+        self.toolbar.addWidget(QPushButton("Puhs", self))
+        self.main_layout.addWidget(self.toolbar)
         self.video_frame = QLabel(self)
         self.video_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.capture_button = QPushButton(self)
@@ -104,8 +113,10 @@ class App(QWidget):
 
     def display_capture(self, data):
         import rack_table
-        self.dialog = rack_table.Dialog_Form(data)
-        self.dialog.create_stack(len(data[2]))
+        self.dialog = rack_table.Dialog_Form()
+        self.dialog.shift_item(data)
+        #self.dialog.init_data(data)
+        self.dialog.create_stack(data[2])
         self.dialog.show()
 
 def main():

@@ -19,7 +19,7 @@ from PyQt5.QtWidgets import QVBoxLayout
 from PyQt5.QtWidgets import QWidget
 
 class Dialog_Form(QWidget):
-    def __init__(self, data):
+    def __init__(self):
         super().__init__()
         self.master_layout = QVBoxLayout()
         self.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
@@ -29,9 +29,11 @@ class Dialog_Form(QWidget):
         self.toolbar.addWidget(self.combobox)
         self.master_layout.addWidget(self.toolbar)
         self.combobox.currentTextChanged.connect(self.switch_page)
-        self.data = data
         self.current_item = 1
         self.new_form = False
+
+    def init_data(self, data):
+        self.data = data
 
     def set_font(self, size=14):
         self.tab_font = self.font()
@@ -44,14 +46,15 @@ class Dialog_Form(QWidget):
             self.combobox.addItem(f"Item Group {i+1}")
 
     def switch_page(self):
-        page = re.findall(r"\d{1,}", self.combobox.currentText())
-        page = int(page[0]) - 1
         try:
+            page = re.findall(r"\d{1,}", self.combobox.currentText())
+            page = int(page[0]) - 1
             self.stack.setCurrentIndex(page)
-        except AttributeError:
+        except (AttributeError, IndexError):
             pass
 
     def create_stack(self, stack_num):
+        #self.shift_item()
         self.add_pages(stack_num)
         self.stack_dict = {i: QWidget(self) for i in range(stack_num)}
         self.form_dict = {i: QFormLayout() for i in range(stack_num)}
@@ -81,21 +84,22 @@ class Dialog_Form(QWidget):
         edit_button.clicked.connect(self.edit_item)
         trash_button = QToolButton(self)
         trash_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "remove.png")))
+        trash_button.clicked.connect(self.remove_item)
         container_layout.addWidget(self.location)
         container_layout.addWidget(add_button)
         container_layout.addWidget(edit_button)
         container_layout.addWidget(trash_button)
-        self.product = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][0], self)
-        self.size = QLabel(str(self.data[2][f"Item_Group_{stack_num + 1}"][1]), self)
-        self.quantity = QLabel(str(self.data[2][f"Item_Group_{stack_num + 1}"][2]), self)
-        self.item_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][3], self)
-        self.lot_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][4], self)
-        self.proto_no = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][5], self)
-        self.date_stored = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][6], self)
-        self.sent_to_storage = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][7], self)
-        self.proj_num = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][8], self)
-        self.q_spec = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][9], self)
-        self.contact = QLabel(self.data[2][f"Item_Group_{stack_num + 1}"][10], self)
+        self.product = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][0], self)
+        self.size = QLabel(str(self.data[3][f"Item_Group_{stack_num + 1}"][1]), self)
+        self.quantity = QLabel(str(self.data[3][f"Item_Group_{stack_num + 1}"][2]), self)
+        self.item_no = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][3], self)
+        self.lot_no = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][4], self)
+        self.proto_no = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][5], self)
+        self.date_stored = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][6], self)
+        self.sent_to_storage = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][7], self)
+        self.proj_num = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][8], self)
+        self.q_spec = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][9], self)
+        self.contact = QLabel(self.data[3][f"Item_Group_{stack_num + 1}"][10], self)
         self.form_dict[stack_num].addRow(QLabel("Location:"), container)
         self.form_dict[stack_num].addRow(QLabel("Product:"), self.product)
         self.form_dict[stack_num].addRow(QLabel("Size:"), self.size)
@@ -109,13 +113,6 @@ class Dialog_Form(QWidget):
         self.form_dict[stack_num].addRow(QLabel("QE/QA/QN:"), self.q_spec)
         self.form_dict[stack_num].addRow(QLabel("Contact:"), self.contact)
         self.set_font()
-
-    def is_form_open(self):
-        if self.new_form:
-            pass
-        else:
-            self.new_form = True
-            self.add_item()
 
     def new_item(self, stack_num):
         self.form_dict[stack_num].setAlignment(Qt.AlignCenter)
@@ -172,14 +169,28 @@ class Dialog_Form(QWidget):
         self.form_dict[stack_num].addRow(QLabel("Contact:"), contact)
         self.set_font()
 
+    def is_form_open(self):
+        if self.new_form:
+            pass
+        else:
+            self.new_form = True
+            self.add_item()
+
     def add_item(self):
-        count = self.stack.count()
-        self.combobox.addItem(f"Item Group {count+1}")
-        self.stack_dict[count] = QWidget(self)
-        self.form_dict[count] = QFormLayout()
-        self.stack.addWidget(self.stack_dict[count])
-        self.new_item(count)
-        self.combobox.setCurrentIndex(count)
+        with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
+            items = json.load(f)
+        ig = items[self.data[0]][self.data[1]]
+        empty_cond = [ig[f"Item_Group_{i+1}"] == ["" for _ in range(11)] for i in range(len(ig))]
+        if True in empty_cond:
+            self.edit_item()
+        else:
+            count = self.stack.count()
+            self.combobox.addItem(f"Item Group {count+1}")
+            self.stack_dict[count] = QWidget(self)
+            self.form_dict[count] = QFormLayout()
+            self.stack.addWidget(self.stack_dict[count])
+            self.new_item(count)
+            self.combobox.setCurrentIndex(count)
 
     def edit_item(self):
         for i in range(self.form_dict[self.stack.currentIndex()].rowCount()):
@@ -193,7 +204,7 @@ class Dialog_Form(QWidget):
         new_container.setSizePolicy(QSizePolicy.Minimum, QSizePolicy.Minimum)
         add_button = QToolButton(self)
         add_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
-        add_button.clicked.connect(lambda: self.write_item())
+        add_button.clicked.connect(lambda: self.write_item(self.stack.currentIndex()+1, "Item Group Updated"))
         new_container_layout.addWidget(location)
         new_container_layout.addWidget(add_button)
         self.form_dict[self.stack.currentIndex()].addRow(QLabel("Location:"), new_container)
@@ -214,14 +225,52 @@ class Dialog_Form(QWidget):
             items = json.load(f)
         ss = self.stack_dict[self.stack.currentIndex()]
         items[self.data[0]][self.data[1]][f"Item_Group_{write_stack}"] = [i.text().upper() for i in ss.findChildren(QLineEdit)]
-        #with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
-            #json.dump(items, fw, indent=4)
+        with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
+            json.dump(items, fw, indent=4)
         self.new_form = False
         self.info_message("Success", f"{msg_str}")
-        self.data[2][f"Item_Group_{write_stack}"] = items[self.data[0]][self.data[1]][f"Item_Group_{write_stack}"]
-        for i in reversed(range(self.form_dict[self.stack.count()-1].count())):
-            self.form_dict[self.stack.count()-1].itemAt(i).widget().deleteLater()
-        self.form_ui(self.stack.count()-1)
+        self.data[3][f"Item_Group_{write_stack}"] = items[self.data[0]][self.data[1]][f"Item_Group_{write_stack}"]
+        for i in reversed(range(self.form_dict[self.stack.currentIndex()].count())):
+            self.form_dict[self.stack.currentIndex()].itemAt(i).widget().deleteLater()
+        self.form_ui(write_stack-1)
+
+    def remove_item(self):
+        with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
+            items = json.load(f)
+        try:
+            empty_cond = items[self.data[0]][self.data[1]]["Item_Group_2"] == ["" for _ in range(11)]
+        except KeyError:
+            empty_cond = True
+        if empty_cond:
+            items[self.data[0]][self.data[1]]["Item_Group_1"] = ["" for _ in range(11)]
+            self.data[3][f"Item_Group_{self.stack.currentIndex()+1}"] = ["" for _ in range(11)]
+        else:
+            items[self.data[0]][self.data[1]].pop(f"Item_Group_{self.stack.currentIndex()+1}", None)
+            self.data[3][f"Item_Group_{self.stack.currentIndex()+1}"] = ["" for _ in range(11)]
+            for i in reversed(range(self.form_dict[self.stack.currentIndex()].count())):
+                self.form_dict[self.stack.currentIndex()].itemAt(i).widget().deleteLater()
+            self.stack_dict.pop(self.stack.currentIndex(), None)
+            self.form_dict.pop(self.stack.currentIndex(), None)
+            self.stack.removeWidget(self.stack.currentWidget())
+            self.combobox.removeItem(self.combobox.currentIndex())
+        with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
+            json.dump(items, fw, indent=4)
+        self.stack.setCurrentIndex(0)
+
+    def shift_item(self, data):
+        self.data = data
+        with open(os.path.join(os.getcwd(), "racks.json"), 'r') as f:
+            items = json.load(f)
+        keys = [key for key in items[self.data[0]][self.data[1]].keys()]
+        k = 1
+        for i in keys:
+            if i != f"Item_Group_{k}":
+                items[self.data[0]][self.data[1]][f"Item_Group_{k}"] = items[self.data[0]][self.data[1]][i]
+                del items[self.data[0]][self.data[1]][i]
+                k += 1
+        with open(os.path.join(os.getcwd(), "racks.json"), 'w') as fw:
+            json.dump(items, fw, indent=4)
+        self.data.append(items[self.data[0]][self.data[1]])
 
     def info_message(self, t, m):
         qb = QMessageBox(self)
