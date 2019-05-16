@@ -10,19 +10,23 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtCore import QTimer
+from PyQt5.QtGui import QIcon
 from PyQt5.QtGui import QImage
 from PyQt5.QtGui import QPalette
 from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QAction
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QFormLayout
 from PyQt5.QtWidgets import QGroupBox
 from PyQt5.QtWidgets import QHBoxLayout
 from PyQt5.QtWidgets import QLabel
 from PyQt5.QtWidgets import QMainWindow
+from PyQt5.QtWidgets import QMenu
 from PyQt5.QtWidgets import QPushButton
 from PyQt5.QtWidgets import QSizePolicy
 from PyQt5.QtWidgets import QStackedWidget
 from PyQt5.QtWidgets import QToolBar
+from PyQt5.QtWidgets import QToolButton
 from PyQt5.QtWidgets import QTreeWidget
 from PyQt5.QtWidgets import QTreeWidgetItem
 from PyQt5.QtWidgets import QVBoxLayout
@@ -74,7 +78,15 @@ class App(QWidget):
         pal = QPalette()
         pal.setColor(QPalette.Background, Qt.transparent)
         self.toolbar.setPalette(pal)
-        self.toolbar.addWidget(QPushButton("Puhs", self))
+        menu_button = QToolButton(self)
+        menu_button.setPopupMode(QToolButton.InstantPopup)
+        menu_button.setIcon(QIcon(os.path.join(os.getcwd(), "images", "options.png")))
+        menu = QMenu(self)
+        view_table = QAction(QIcon(os.path.join(os.getcwd(), "images", "options.png")), "View Table", self)
+        view_table.triggered.connect(self.open_table)
+        menu.addAction(view_table)
+        menu_button.setMenu(menu)
+        self.toolbar.addWidget(menu_button)
         self.main_layout.addWidget(self.toolbar)
         self.video_frame = QLabel(self)
         self.video_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
@@ -118,6 +130,11 @@ class App(QWidget):
         #self.dialog.init_data(data)
         self.dialog.create_stack(data[2])
         self.dialog.show()
+
+    def open_table(self):
+        import rack_db
+        self.db = rack_db.Table_Widget()
+        self.db.show()
 
 def main():
     import sys
