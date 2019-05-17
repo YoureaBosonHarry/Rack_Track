@@ -50,6 +50,7 @@ class Table_Widget(QWidget):
     def init_table(self):
         data = open_racksdb()
         self.table = QTableWidget(self)
+        self.table.cellClicked.connect(self.cell_clicked)
         self.table.setColumnCount(11)
         self.table.setRowCount(len([j for i in data for j in data[i] for k in data[i][j] if data[i][j][k][0]]))
         self.table.setHorizontalHeaderLabels(["Product Description", "Size", "Quanitity",
@@ -70,11 +71,13 @@ class Table_Widget(QWidget):
 
     def populate_table(self):
         data = open_racksdb()
+        self.row_ids = {}
         d = 0
         for i in data:
             for j in data[i]:
                 for n, k in enumerate(data[i][j]):
                     if data[i][j][k][0]:
+                        self.row_ids[d] = [i, j]
                         for l, m in enumerate(self.get_box(i, j, k)):
                             item = QTableWidgetItem()
                             item.setData(Qt.DisplayRole, str(m))
@@ -101,5 +104,9 @@ class Table_Widget(QWidget):
             else:
                 self.table.setRowHidden(i, False)
 
-    def cell_clicked(self, event):
-        pass
+    def cell_clicked(self, row, col):
+        a = self.row_ids[row]
+        qb = QMessageBox(self)
+        qb.setWindowTitle("Location")
+        qb.setText(f"Items Located in {a[0]}, {a[1]}")
+        qb.exec_()
