@@ -54,6 +54,11 @@ def validate_code(barcode_data):
         return True, [matrix, box, len(data[matrix][box])]
         #return True, [matrix, box]
 
+def get_stylesheet():
+    from stylesheets import StyleSheets
+    sheets = StyleSheets()
+    return sheets
+
 class App(QWidget):
     def __init__(self):
         super().__init__()
@@ -91,6 +96,9 @@ class App(QWidget):
         self.video_frame = QLabel(self)
         self.video_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.capture_button = QPushButton(self)
+        self.capture_button.setFixedWidth(40)
+        self.capture_button.setFixedHeight(40)
+        self.capture_button.setStyleSheet(get_stylesheet().capture_circular_button)
         self.capture_button.clicked.connect(self.cap)
         self.main_layout.addWidget(self.video_frame)
         self.main_layout.addWidget(self.capture_button)
