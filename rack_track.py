@@ -52,7 +52,7 @@ def validate_code(barcode_data):
         data = json.load(f)
     if matrix in data:
         return True, [matrix, box, len(data[matrix][box])]
-        #return True, [matrix, box]
+
 
 def get_stylesheet():
     from stylesheets import StyleSheets
@@ -65,7 +65,7 @@ class App(QWidget):
         self.layout = QHBoxLayout()
         self.layout.setAlignment(Qt.AlignCenter)
         self.setLayout(self.layout)
-        #self.showFullScreen()
+        self.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.fps = 24
         self.font = self.font()
         self.font.setPointSize(14)
@@ -76,7 +76,6 @@ class App(QWidget):
     def main_ui(self):
         self.main_gb = QGroupBox(self)
         self.main_layout = QVBoxLayout()
-        self.main_layout.setAlignment(Qt.AlignCenter)
         self.main_gb.setLayout(self.main_layout)
         self.layout.addWidget(self.main_gb)
         self.toolbar = QToolBar(self)
@@ -95,6 +94,10 @@ class App(QWidget):
         self.main_layout.addWidget(self.toolbar)
         self.video_frame = QLabel(self)
         self.video_frame.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        spacer = QWidget(self)
+        spacer.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
+        spacer2 = QWidget(self)
+        spacer2.setSizePolicy(QSizePolicy.Expanding, QSizePolicy.Expanding)
         self.capture_button = QPushButton(self)
         self.capture_button.setFixedWidth(40)
         self.capture_button.setFixedHeight(40)
@@ -132,12 +135,10 @@ class App(QWidget):
         self.display_capture(data)
 
     def display_capture(self, data):
-        import rack_table
-        self.dialog = rack_table.Dialog_Form()
-        self.dialog.shift_item(data)
-        #self.dialog.init_data(data)
-        self.dialog.create_stack(data[2])
-        self.dialog.show()
+        import rack_db
+        self.scan_db = rack_db.Table_Widget()
+        self.scan_db.scan_signal(data)
+        self.scan_db.show()
 
     def open_table(self):
         import rack_db

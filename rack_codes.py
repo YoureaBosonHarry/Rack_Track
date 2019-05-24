@@ -21,7 +21,7 @@ def create_qrcode(data, fname):
     img = qr.make_image(fill_color="black", back_color="white")
     img.save(os.path.join(equipment_filepath, fname))
     img2 = Image.open(os.path.join(equipment_filepath, fname))
-    arial_path = os.path.join(os.getcwd(), "CMS", "bin", "fonts", "arial.ttf")
+    arial_path = os.path.join(os.getcwd(), "arial.ttf")
     draw = ImageDraw.Draw(img2)
     font = ImageFont.truetype(arial_path, 15)
     location = data.split(" ")[0]
@@ -63,9 +63,9 @@ def main():
     with open(path, 'r') as f:
         data = json.load(f)
     for i in data:
-        if data[i]:
-            for box in data[i]:
-                create_qrcode(data=f"{i} {box}", fname=f"{i}_{box}.png")
+        #if data[i]:
+        for box in data[i]:
+            create_qrcode(data=f"{i} {box}", fname=f"{i}_{box}.png")
 
 if __name__ == "__main__":
     print_codes()

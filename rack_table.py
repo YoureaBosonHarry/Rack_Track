@@ -54,7 +54,6 @@ class Dialog_Form(QWidget):
             pass
 
     def create_stack(self, stack_num):
-        #self.shift_item()
         self.add_pages(stack_num)
         self.stack_dict = {i: QWidget(self) for i in range(stack_num)}
         self.form_dict = {i: QFormLayout() for i in range(stack_num)}
@@ -65,7 +64,6 @@ class Dialog_Form(QWidget):
             self.form_ui(i)
 
     def form_ui(self, stack_num):
-        print(self.data)
         self.form_dict[stack_num].setAlignment(Qt.AlignCenter)
         self.form_dict[stack_num].setSpacing(12)
         self.stack_dict[stack_num].setLayout(self.form_dict[stack_num])
