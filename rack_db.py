@@ -30,6 +30,9 @@ def open_racksdb():
         data = json.load(f)
     return data
 
+def dump_racksdb(data):
+    with open(os.path.join(os.getcwd(), "racks.json"), 'w') as f:
+        json.dump(data, f, indent=4)
 
 class Table_Widget(QWidget):
     def __init__(self):
@@ -187,7 +190,12 @@ class Table_Widget(QWidget):
             edit.triggered.connect(lambda: self.edit_row(i))
 
     def add_row(self, row):
+        print(self.row_ids[row])
         self.table.insertRow(row)
+        self.edit_flag = True
+        btn = QPushButton(self.table)
+        btn.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
+        self.table.setCellWidget(row, 0, btn)
 
     def edit_row(self, row):
         self.edit_flag = True
@@ -199,6 +207,9 @@ class Table_Widget(QWidget):
             self.table.item(row, i).setFlags((self.table.item(row, i).flags() ^ Qt.ItemIsEditable))
 
     def complete_edit(self, row):
-        print(self.row_ids[row])
+        old = open_racksdb()
+        dict_info = self.row_ids[row]
         new = [self.table.item(row, i).text() for i in range(2, self.table.columnCount())]
-        
+        old[dict_info[0]][dict_info[1]][dict_info[2]] = new
+        dump_racksdb(old)
+        self.edit_flag = False
