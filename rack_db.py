@@ -190,11 +190,14 @@ class Table_Widget(QWidget):
             edit.triggered.connect(lambda: self.edit_row(i))
 
     def add_row(self, row):
-        print(self.row_ids[row])
+        old = open_racksdb()
+        dict_info = self.row_ids[row]
+        length = len(old[dict_info[0]][dict_info[1]])
         self.table.insertRow(row)
         self.edit_flag = True
         btn = QPushButton(self.table)
         btn.setIcon(QIcon(os.path.join(os.getcwd(), "images", "check.png")))
+        btn.clicked.connect(lambda: self.complete_edit(row, group=f"Item_Group_{length + 1}"))
         self.table.setCellWidget(row, 0, btn)
 
     def edit_row(self, row):
@@ -206,10 +209,16 @@ class Table_Widget(QWidget):
         for i in range(1, self.table.columnCount()):
             self.table.item(row, i).setFlags((self.table.item(row, i).flags() ^ Qt.ItemIsEditable))
 
-    def complete_edit(self, row):
+    def complete_edit(self, row, group=None):
         old = open_racksdb()
         dict_info = self.row_ids[row]
-        new = [self.table.item(row, i).text() for i in range(2, self.table.columnCount())]
-        old[dict_info[0]][dict_info[1]][dict_info[2]] = new
+        new = [self.table.item(row, i).text() if self.table.item(row, i) else "" for i in range(2, self.table.columnCount())]
+        if group:
+            old[dict_info[0]][dict_info[1]][group] = new
+        else:
+            old[dict_info[0]][dict_info[1]][dict_info[2]] = new
         dump_racksdb(old)
         self.edit_flag = False
+        self.table.clear()
+        self.table.setColumnHidden(0, True)
+        self.populate_table()
